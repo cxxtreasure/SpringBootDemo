@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.FormMapper">
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.Form">
+        <!--<id column="id" jdbcType="BIGINT" property="id" />-->
+        <!--<result column="name" jdbcType="VARCHAR" property="name" />-->
+        <!--<result column="money" jdbcType="DECIMAL" property="money" />-->
+        <!--<result column="create_date" jdbcType="TIMESTAMP" property="createDate" />-->
+        <!--<result column="modify_date" jdbcType="TIMESTAMP" property="modifyDate" />-->
+        <!--<result column="is_deleted" jdbcType="TINYINT" property="isDeleted" />-->
+    </resultMap>
+    <select id="findAll" resultMap="BaseResultMap">
+        select * from db_person.user
+    </select>
+
+
+    <!-- 通过ID查询一个用户 -->
+    <select id="findUserById"  resultMap="BaseResultMap" parameterType="Integer">
+        select * from db_person.user where id = #{v}
+    </select>
+
+
+    <!-- 添加用户 -->
+    <insert id="insertUser" parameterType="com.example.demo.entity.Form">
+        <selectKey keyProperty="id" resultType="Integer" order="AFTER">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into user (name,money,create_date,modify_date,is_valid)
+        values (#{name},#{money},#{create_date},#{modify_date},#{is_valid})
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updateUserById" parameterType="com.example.demo.entity.Form">
+        update user
+        set name = #{name}
+        where id = #{id}
+    </update>
+    <!-- 删除 -->
+    <update id="deleteUserById" parameterType="Integer">
+        delete FROM user
+        where id = #{id}
+    </update>
+    <!-- //根据用户名称模糊查询用户列表
+#{}    select * from user where id = ？    占位符  ? ==  '五'//防注入
+${}    select * from user where username like '%五%'  字符串拼接
+
+ -->
+    <select id="findUserByUsername" parameterType="String" resultType="com.example.demo.entity.Form">
+        select * from user where name like "%"#{haha}"%"
+    </select>
+</mapper>
