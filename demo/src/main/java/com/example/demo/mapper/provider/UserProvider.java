@@ -7,14 +7,14 @@ public class UserProvider {
         return " select * from db_person.user ";
     }
     public String GetAllUserById(Integer id){
-        //return " select * from db_person.user where  id="+id;
+        return " select * from db_person.user where  id=#{id}";
         //参数化
-        return new SQL(){
-            {
-                SELECT("*");
-                FROM("user");
-                WHERE("id=#{id}");
-            }
-        }.toString();
+//        return new SQL(){
+//            {
+//                SELECT("*");
+//                FROM("user");
+//                WHERE("id=#{id}");
+//            }
+//        }.toString();
     }
 }
