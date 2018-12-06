@@ -1,18 +1,35 @@
 spring:
-  datasource:
-    data:
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/db_person
-    username: root
-    password: root
-  mvc:
-    view:
-    # 定位模板的目录
-      prefix: classpath:/templates/
-      # 给返回的页面添加后缀名
-      suffix: .html
-mybatis:
-#映射的文件位置
-  mapper-locations: classpath:mapper/*.xml
-#  映射的实体位置
-  type-aliases-package: com.example.demo.entity
+  profiles:
+    active: dev
+#spring:
+#  datasource:
+#    data:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/db_person
+#    username: root
+#    password: root
+#  mvc:
+#    view:
+#    # 定位模板的目录
+#      prefix: classpath:/templates/
+#      # 给返回的页面添加后缀名
+#      suffix: .html
+#mybatis:
+##映射的文件位置
+#  mapper-locations: classpath:mapper/*.xml
+##  映射的实体位置
+#  type-aliases-package: com.example.demo.entity
+
+
+#person:
+#    age: 18
+#    boss: false
+#    birth: 2017/12/12
+#    maps: {k1: v1,k2: 12}
+#    lists:
+#      - lisi
+#      - zhaoliu
+#    dog:
+#      name: 小狗
+#      age: 12
+#    last-name: hello
