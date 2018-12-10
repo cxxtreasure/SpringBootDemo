@@ -2,12 +2,12 @@ spring:
   datasource:
     first:
        driver-class-name: com.mysql.jdbc.Driver
-       url: jdbc:mysql://localhost:3306/db_person
+       jdbc-url: jdbc:mysql://localhost:3306/db_person
        username: root
        password: root
     second:
        driver-class-name: com.mysql.jdbc.Driver
-       url: jdbc:mysql://localhost:3306/webdb?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+       jdbc-url: jdbc:mysql://localhost:3306/webdb?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
        username: root
        password: root
   mvc:

@@ -7,6 +7,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -20,7 +22,7 @@ import javax.sql.DataSource;
 @MapperScan(basePackages = {"com.example.demo.mapper2"},annotationClass = DbSourceSecond.class,
         sqlSessionTemplateRef = "DbSourceSecondTemplate")
 public class SecondDbConfig {
-    @Value("${spring.datasource.second.url}")
+    @Value("${spring.datasource.second.jdbc-url}")
     private String url;
 
     @Value("${spring.datasource.second.username}")
@@ -37,20 +39,22 @@ public class SecondDbConfig {
 
 
     @Bean(name = "dbSecond")
+    @ConfigurationProperties(prefix = "spring.datasource.second")
     public DataSource secondaryDataSource() {
-        return dataSourceFactory(driveClassName, url, userName, password);
+        //return dataSourceFactory(driveClassName, url, userName, password);
+        return DataSourceBuilder.create().build();
     }
 
-    public DataSource dataSourceFactory(String driveClassName, String url, String userName, String password) {
-        DruidDataSource datasource = new DruidDataSource();
-        datasource.setDriverClassName(driveClassName);
-        datasource.setUrl(url);
-        datasource.setUsername(userName);
-        datasource.setPassword(password);
-        datasource.setMaxActive(20);
-        datasource.setInitialSize(20);
-        return datasource;
-    }
+//    public DataSource dataSourceFactory(String driveClassName, String url, String userName, String password) {
+//        DruidDataSource datasource = new DruidDataSource();
+//        datasource.setDriverClassName(driveClassName);
+//        datasource.setUrl(url);
+//        datasource.setUsername(userName);
+//        datasource.setPassword(password);
+//        datasource.setMaxActive(20);
+//        datasource.setInitialSize(20);
+//        return datasource;
+//    }
 
     @Bean(name = "DbSourceSecondTemplate")
     public SqlSessionTemplate dbSecondSqlTemplate() throws Exception {
