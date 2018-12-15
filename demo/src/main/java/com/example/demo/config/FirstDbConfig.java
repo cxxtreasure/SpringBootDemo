@@ -20,10 +20,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+
 @Configuration
-@MapperScan(basePackages = {"com.example.demo.mapper"},annotationClass = DbSourceFirst.class,
+@MapperScan(basePackages = {"com.example.demo.mapper"}, annotationClass = DbSourceFirst.class,
         sqlSessionTemplateRef = "DbSourceFirstTemplate")
-@Component
+//@Component
 public class FirstDbConfig {
     @Value("${spring.datasource.first.jdbc-url}")
     private String url;
@@ -66,11 +67,11 @@ public class FirstDbConfig {
         return new SqlSessionTemplate((sqlSessionFactory(firstDataSource(), mapperLocation)));
     }
 
-    public SqlSessionFactory sqlSessionFactory(DataSource dataSource, String mapperLocation) throws Exception{
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource, String mapperLocation) throws Exception {
         SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
         ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
-        Resource[] resource= resourceResolver.getResources(mapperLocation);
+        Resource[] resource = resourceResolver.getResources(mapperLocation);
         factoryBean.setMapperLocations(resource);
         return factoryBean.getObject();
     }

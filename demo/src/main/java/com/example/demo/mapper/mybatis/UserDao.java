@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 @DbSourceFirst
-@Repository
+@Mapper
 public interface UserDao {
     @SelectProvider(type = UserProvider.class,method = "GetAllUser")
     public List<User> GetAllUser();

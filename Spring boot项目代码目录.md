@@ -162,6 +162,12 @@ public class GlobalDefaultExceptionHandler {
 }
 ```
 
+# 几款好用的插件
+
+1、FindBugs  查找潜在bug
+
+2、Maven help分析pom文件的依赖情况（方便解决依赖版本的冲突问题）
+
 # 配置文件
 
 ## 1、配置文件
@@ -532,13 +538,296 @@ springboot 启动会扫描以下位置的application.properties或者application
 
 SpringBoot会从这四个位置全部加载主配置文件；**互补配置**；
 
-## 
+# 基于注解实现SpringBoot多数据源配置
+
+## 1、在application.yml中添加多数据源配置
+
+ 添加多个数据源和mapper文件路径配置，此配置用于基于java的配置数据源中使用。 
+
+```
+spring:
+  datasource:
+    first:
+       driver-class-name: com.mysql.jdbc.Driver
+       jdbc-url: jdbc:mysql://localhost:3306/db_person
+       username: root
+       password: root
+    second:
+       driver-class-name: com.mysql.jdbc.Driver
+       jdbc-url: jdbc:mysql://localhost:3306/webdb?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+       username: root
+       password: root
+  mvc:
+    view:
+    # 定位模板的目录
+      prefix: classpath:/templates/
+      # 给返回的页面添加后缀名
+      suffix: .html
+mybatis:
+#映射的文件位置
+  mapper-locations: classpath:mapper/*.xml
+#  映射的实体位置
+  type-aliases-package: com.example.demo.entity
+```
+
+##2、基于java的方式实现数据库配置
+
+其中DemoUserDbConfig类源代码如下： 其中Configuration注解表识此类为Spring的配置类。 MapperScan注解中的basePackages、annotationClass、sqlSessionTemplateRef用于配置此数据库链接扫描com.example包中所有注解为DemoUserMapper的接口。 
+
+```
+@Configuration
+@MapperScan(basePackages = {"com.example.demo.mapper"},annotationClass = DbSourceFirst.class,
+        sqlSessionTemplateRef = "DbSourceFirstTemplate")
+//@Component
+public class FirstDbConfig {
+    @Value("${spring.datasource.first.jdbc-url}")
+    private String url;
+
+    @Value("${spring.datasource.first.username}")
+    private String userName;
+
+    @Value("${spring.datasource.first.password}")
+    private String password;
+
+    @Value("${spring.datasource.first.driver-class-name}")
+    private String driveClassName;
+
+    @Value(value = "${mybatis.mapper-locations}")
+    private String mapperLocation;
+
+
+    @Bean(name = "dbFirst")
+    @Primary     //需加这个注解否则会报错
+    @ConfigurationProperties(prefix = "spring.datasource.first")
+    public DataSource firstDataSource() {
+        ///return dataSourceFactory(driveClassName, url, userName, password);
+        return DataSourceBuilder.create().build();
+    }
+
+//    public DataSource dataSourceFactory(String driveClassName, String url, String userName, String password) {
+//        DruidDataSource datasource = new DruidDataSource();
+//        datasource.setDriverClassName(driveClassName);
+//        datasource.setUrl(url);
+//        datasource.setUsername(userName);
+//        datasource.setPassword(password);
+//        datasource.setMaxActive(20);
+//        datasource.setInitialSize(20);
+//        return datasource;
+//    }
+
+    @Bean(name = "DbSourceFirstTemplate")
+    @Primary
+    public SqlSessionTemplate dbFirstSqlTemplate() throws Exception {
+        return new SqlSessionTemplate((sqlSessionFactory(firstDataSource(), mapperLocation)));
+    }
+
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource, String mapperLocation) throws Exception{
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dataSource);
+        ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
+        Resource[] resource= resourceResolver.getResources(mapperLocation);
+        factoryBean.setMapperLocations(resource);
+        return factoryBean.getObject();
+    }
+
+    @Bean
+    @Qualifier("dbFirstTransaction")
+    public PlatformTransactionManager demoUserTransaction() {
+        return new DataSourceTransactionManager(firstDataSource());
+    }
+}
+```
+
+使用相同的方法定义其他数据源。 
+
+```
+@Configuration
+@MapperScan(basePackages = {"com.example.demo.mapper2"},annotationClass = DbSourceSecond.class,
+        sqlSessionTemplateRef = "DbSourceSecondTemplate")
+public class SecondDbConfig {
+    @Value("${spring.datasource.second.jdbc-url}")
+    private String url;
+
+    @Value("${spring.datasource.second.username}")
+    private String userName;
+
+    @Value("${spring.datasource.second.password}")
+    private String password;
+
+    @Value("${spring.datasource.second.driver-class-name}")
+    private String driveClassName;
+
+    @Value(value = "${mybatis.mapper-locations}")
+    private String mapperLocation;
+
+
+    @Bean(name = "dbSecond")
+    @ConfigurationProperties(prefix = "spring.datasource.second")
+    public DataSource secondaryDataSource() {
+        //return dataSourceFactory(driveClassName, url, userName, password);
+        return DataSourceBuilder.create().build();
+    }
+
+//    public DataSource dataSourceFactory(String driveClassName, String url, String userName, String password) {
+//        DruidDataSource datasource = new DruidDataSource();
+//        datasource.setDriverClassName(driveClassName);
+//        datasource.setUrl(url);
+//        datasource.setUsername(userName);
+//        datasource.setPassword(password);
+//        datasource.setMaxActive(20);
+//        datasource.setInitialSize(20);
+//        return datasource;
+//    }
+
+    @Bean(name = "DbSourceSecondTemplate")
+    public SqlSessionTemplate dbSecondSqlTemplate() throws Exception {
+        return new SqlSessionTemplate((sqlSessionFactory(secondaryDataSource(), mapperLocation)));
+    }
+
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource, String mapperLocation) throws Exception{
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dataSource);
+        ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
+        Resource[] resource= resourceResolver.getResources(mapperLocation);
+        factoryBean.setMapperLocations(resource);
+        return factoryBean.getObject();
+    }
+
+    @Bean
+    @Qualifier("dbSecondTransaction")
+    public PlatformTransactionManager demoUserTransaction() {
+        return new DataSourceTransactionManager(secondaryDataSource());
+    }
+}
+```
+
+## 3、定义接口和mapper文件
+
+### 	（1）、以xml配置文件的方案读取
+
+```
+@Mapper
+@DbSourceSecond
+public interface NewsMapper {
+    public List<News> findAll();
+}
+```
+
+mapper文件如下： 
+
+```
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper2.NewsMapper">
+    <resultMap id="BaseResultMap" type="com.example.demo.entity.News">
+    </resultMap>
+    <select id="findAll" resultMap="BaseResultMap">
+        select * from webdb.news
+    </select>
+</mapper>
+```
+
+### 	 （2）、以注解的方式读取数据
+
+```
+@Mapper
+@DbSourceSecond
+public interface NewsDao {
+    @SelectProvider(type = NewsProvider.class,method = "GetTop1News")
+    public News GetTop1News();
+}
+```
+
+```
+public class NewsProvider {
+    public String GetTop1News(){
+        return "select  * from webdb.news limit 1 ";
+    }
+}
+```
+
+其他数据源配置此处略去
+
+## 4、定义注解
+
+定义DbSourceFirst和DbSourceSecond注解，分别作为数据库的表识。 定义代码如下： 
+
+```
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Component
+@Mapper
+public @interface DbSourceFirst {
+    /**
+     * The value may indicate a suggestion for a logical component name,
+     * to be turned into a Spring bean in case of an autodetected component.
+     * @return the suggested component name, if any (or empty String otherwise)
+     */
+    String value() default "";
+}
+```
+
+```
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Component
+@Mapper
+public @interface DbSourceSecond {
+    /**
+     * The value may indicate a suggestion for a logical component name,
+     * to be turned into a Spring bean in case of an autodetected component.
+     * @return the suggested component name, if any (or empty String otherwise)
+     */
+    String value() default "";
+}
+```
+
+## 5、使用单元测试验证配置
+
+```
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class DemoApplicationTests {
+   @Autowired
+   private NewsDao newsDao;
+   @Test
+   public void contextLoads() {
+      News news = newsDao.GetTop1News();
+      String json= JSONObject.toJSON(news).toString();
+      System.out.print(json);
+   }
+}
+```
 
 
 
-## 
 
-## 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
