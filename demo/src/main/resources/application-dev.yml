@@ -1,22 +1,27 @@
 spring:
-  datasourceFirst:
-    data:
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/db_person
-    username: root
-    password: root
-  datasourceSecond:
-    data:
-        driver-class-name: com.mysql.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/webdb
-        username: root
-        password: root
+  datasource:
+    first:
+       driver-class-name: com.mysql.jdbc.Driver
+       jdbc-url: jdbc:mysql://localhost:3306/db_person
+       username: root
+       password: root
+    second:
+       driver-class-name: com.mysql.jdbc.Driver
+       jdbc-url: jdbc:mysql://localhost:3306/webdb?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+       username: root
+       password: root
   mvc:
     view:
     # 定位模板的目录
       prefix: classpath:/templates/
       # 给返回的页面添加后缀名
       suffix: .html
+  activemq:
+    broker-url: tcp://localhost:61616
+    in-memory: true
+    pool:
+      enabled: false
+
 mybatis:
 #映射的文件位置
   mapper-locations: classpath:mapper/*.xml

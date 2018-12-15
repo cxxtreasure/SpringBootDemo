@@ -3,6 +3,8 @@ package com.example.demo;
 import com.alibaba.fastjson.JSONObject;
 import com.example.demo.entity.News;
 import com.example.demo.mapper2.mybatis.NewsDao;
+import com.example.demo.mq.test.Producer;
+import org.apache.activemq.command.ActiveMQQueue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,4 +24,20 @@ public class DemoApplicationTests {
 		String json= JSONObject.toJSON(news).toString();
 		System.out.print(json);
 	}
+
+    @Autowired
+    private Producer producer;
+
+    /**
+     * 测试mq
+     * @throws InterruptedException
+     */
+    @Test
+    public void  testActivemq()  throws InterruptedException{
+        ActiveMQQueue activeMQQueue = new ActiveMQQueue("mytest.queue");   //设置目的地destination
+        for(int i=0;i<10;i++) {
+            producer.sendMessage(activeMQQueue, "xxh 是一个好人");
+        }
+    }
+
 }

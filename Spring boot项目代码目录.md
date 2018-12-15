@@ -803,21 +803,98 @@ public class DemoApplicationTests {
 }
 ```
 
+# spring boot简单整合active mq消息
 
+pom文件添加依赖
 
+```
+<dependency>
+   <groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-starter-activemq</artifactId>
+</dependency>
+```
 
+yml文件中添加属性配置
 
+```
+spring:
+    activemq:
+      broker-url: tcp://localhost:61616
+      in-memory: true
+      pool:
+        enabled: false
+```
 
+生产者
 
+```
+/**
+ * 生产者
+ */
+@Service("producer")
+public class Producer {
+    @Autowired
+    private JmsMessagingTemplate template;
 
+    //  目的地要发送的消息内容
+    public void sendMessage(Destination destination, final String message) {
+        template.convertAndSend(destination, message);  //调用convertAndSend方法，将信息发送进去
+    }
+}
+```
 
+消费者
 
+```
+/**
+ * 消费者
+ */
+@Service
+public class Consumer {
+    @JmsListener(destination="mytest.queue")   //使用JMSListener 监听在Producer的消息
+    public void received(String message) {
+        //打印接收到的信息
+        System.out.println("customer接收到的信息为： " +message);
+    }
+}
+```
 
+```
+/**
+ * 消费者
+ */
+@Service
+public class Consumer2 {
+    @JmsListener(destination="mytest.queue")   //使用JMSListener 监听在Producer的消息
+    public void received(String message) {
+        //打印接收到的信息
+        System.out.println("customer2接收到的信息为： " +message);
+    }
+}
+```
 
+测试mq
 
+```
+@Autowired
+private Producer producer;
 
+/**
+ * 测试mq
+ * @throws InterruptedException
+ */
+@Test
+public void  testActivemq()  throws InterruptedException{
+    ActiveMQQueue activeMQQueue = new ActiveMQQueue("mytest.queue");   //设置目的地destination
+    for(int i=0;i<10;i++) {
+        producer.sendMessage(activeMQQueue, "xxh 是一个好人");
+    }
+}
+```
 
+测试结果
 
+![1544890785444](C:\Users\25702\AppData\Local\Temp\1544890785444.png)
 
 
 
